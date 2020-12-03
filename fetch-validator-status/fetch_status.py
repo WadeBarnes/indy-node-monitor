@@ -18,7 +18,7 @@ from indy_vdr.ledger import (
     Request,
 )
 from indy_vdr.pool import open_pool
-
+from sovrin_network_metrics import metrics
 
 verbose = False
 
@@ -48,7 +48,7 @@ def seed_as_bytes(seed):
     return seed.encode("ascii")
 
 
-async def fetch_status(genesis_path: str, nodes: str = None, ident: DidKey = None, status_only: bool = False, alerts_only: bool = False):
+async def fetch_status(genesis_path: str, nodes: str = None, ident: DidKey = None, status_only: bool = False, alerts_only: bool = False, network_name: str = None):
     pool = await open_pool(transactions_path=genesis_path)
     result = []
 
@@ -116,8 +116,8 @@ async def fetch_status(genesis_path: str, nodes: str = None, ident: DidKey = Non
                 filtered_result.append(item)
         result = filtered_result
 
-    print(json.dumps(result, indent=2))
-
+    metrics(result, network_name)
+    #print(json.dumps(result, indent=2))
 
 async def detect_connection_issues(result: any) -> any:
     for node in result:
@@ -332,6 +332,7 @@ if __name__ == "__main__":
         if args.net in networks:
             log("Connecting to '{0}' ...".format(networks[args.net]["name"]))
             args.genesis_url = networks[args.net]["genesisUrl"]
+            network_name = networks[args.net]["name"]
 
     if args.genesis_url:
         download_genesis_file(args.genesis_url, args.genesis_path)
@@ -353,4 +354,4 @@ if __name__ == "__main__":
     else:
         ident = None
 
-    asyncio.get_event_loop().run_until_complete(fetch_status(args.genesis_path, args.nodes, ident, args.status, args.alerts))
+    asyncio.get_event_loop().run_until_complete(fetch_status(args.genesis_path, args.nodes, ident, args.status, args.alerts, network_name))
