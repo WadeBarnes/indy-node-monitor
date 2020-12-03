@@ -12,7 +12,7 @@ def metrics(result, network_name):
 
     for node in result:
         num_of_nodes += 1
-        print(node)
+        #print(node)
         if node["status"]["ok"] == False:
             nodes_offline += 1
 
