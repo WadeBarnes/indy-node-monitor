@@ -48,7 +48,7 @@ def seed_as_bytes(seed):
     return seed.encode("ascii")
 
 
-async def fetch_status(genesis_path: str, nodes: str = None, ident: DidKey = None, status_only: bool = False, alerts_only: bool = False, network_name: str = None):
+async def fetch_status(genesis_path: str, nodes: str = None, ident: DidKey = None, status_only: bool = False, alerts_only: bool = False, network_name: str = None, metrics_log_only: bool = False, metrics_log_info: list = []):
     pool = await open_pool(transactions_path=genesis_path)
     result = []
 
@@ -115,9 +115,12 @@ async def fetch_status(genesis_path: str, nodes: str = None, ident: DidKey = Non
             if ("info" in item["status"]) or ("warnings" in  item["status"]) or ("errors" in  item["status"]):
                 filtered_result.append(item)
         result = filtered_result
+    
+    if status_only:
+        print(json.dumps(result, indent=2))
 
-    metrics(result, network_name)
-    #print(json.dumps(result, indent=2))
+    if metrics_log_only:
+        metrics(result, network_name, metrics_log_info)
 
 async def detect_connection_issues(result: any) -> any:
     for node in result:
@@ -315,6 +318,12 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--seed", default=os.environ.get('SEED') , help="The privileged DID seed to use for the ledger requests.  Can be specified using the 'SEED' environment variable.")
     parser.add_argument("-a", "--anonymous", action="store_true", help="Perform requests anonymously, without requiring privileged DID seed.")
     parser.add_argument("--status", action="store_true", help="Get status only.  Suppresses detailed results.")
+    
+    parser.add_argument("--mlog", action="store_true", help="Metrics log argument uses google sheets api and requires, Google API Credentials json file name (file must be in root folder), google sheet file name and worksheet name. ex: --log --json [Json File Name] --file [Google Sheet File Name] --worksheet [Worksheet name]")
+    parser.add_argument("--json", default=os.environ.get('JSON') , help="Google API Credentials json file name (file must be in root folder). Can be specified using the 'JSON' environment variable.")
+    parser.add_argument("--file", default=os.environ.get('FILE') , help="Specify which google sheets file you want to log too. Can be specified using the 'FILE' environment variable.")
+    parser.add_argument("--worksheet", default=os.environ.get('WORKSHEET') , help="Specify which worksheet you want to log too. Can be specified using the 'WORKSHEET' environment variable.")
+    
     parser.add_argument("--alerts", action="store_true", help="Filter results based on alerts.  Only return data for nodes containing detected 'info', 'warnings', or 'errors'.")
     parser.add_argument("--nodes", help="The comma delimited list of the nodes from which to collect the status.  The default is all of the nodes in the pool.")
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging.")
@@ -347,6 +356,15 @@ if __name__ == "__main__":
         parser.print_help()
         exit()
 
+    metrics_log_info = []
+    if args.mlog:
+        if args.json and args.file and args.worksheet:
+            metrics_log_info = [args.json, args.file, args.worksheet]
+        else:
+            print('Metrics log argument uses google sheets api and requires, Google API Credentials json file name (file must be in root folder), google sheet file name and worksheet name.')
+            print('ex: --mlog --json [Json File Name] --file [Google Sheet File Name] --worksheet [Worksheet name]')
+            exit()
+
     log("indy-vdr version:", indy_vdr.version())
     if did_seed:
         ident = DidKey(did_seed)
@@ -354,4 +372,4 @@ if __name__ == "__main__":
     else:
         ident = None
 
-    asyncio.get_event_loop().run_until_complete(fetch_status(args.genesis_path, args.nodes, ident, args.status, args.alerts, network_name))
+    asyncio.get_event_loop().run_until_complete(fetch_status(args.genesis_path, args.nodes, ident, args.status, args.alerts, network_name, args.mlog, metrics_log_info))

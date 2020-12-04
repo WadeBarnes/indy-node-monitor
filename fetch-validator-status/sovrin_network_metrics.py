@@ -1,10 +1,13 @@
-from google_sheets import appendSheet
+from google_sheets import gspread_authZ, gspread_append_sheet
 import datetime
 
-def metrics(result, network_name):
+def metrics(result, network_name, metrics_log_info):
+    gauth_json = metrics_log_info[0]
+    file_name = metrics_log_info[1]
+    worksheet_name = metrics_log_info[2]
 
-    sheet_name = "Test Log"
-
+    authD_client = gspread_authZ(gauth_json)
+    
     message = ""
     num_of_nodes = 0
     nodes_offline = 0
@@ -12,7 +15,6 @@ def metrics(result, network_name):
 
     for node in result:
         num_of_nodes += 1
-        #print(node)
         if node["status"]["ok"] == False:
             nodes_offline += 1
 
@@ -24,6 +26,5 @@ def metrics(result, network_name):
 
     row = [time, network_name, num_of_nodes, nodes_offline, networkResilience, message]
 
-    print(row)
-    appendSheet(sheet_name, row)
-    print("Done!")
+    gspread_append_sheet(authD_client, file_name, worksheet_name, row)
+    print("\033[1;92;40mPosted to " + file_name + " in sheet " + worksheet_name + ".\033[m")
