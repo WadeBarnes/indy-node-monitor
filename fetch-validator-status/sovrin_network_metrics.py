@@ -11,7 +11,7 @@ def metrics(result, network_name, metrics_log_info):
     message = ""
     num_of_nodes = 0
     nodes_offline = 0
-    time = datetime.datetime.now().strftime("%x %X") # formated to 12/03/20 21:27:49
+    time = datetime.datetime.now().strftime('%m/%d/%Y %H:%M:%S') # formated to 12/3/2020 21:27:49
 
     for node in result:
         num_of_nodes += 1
@@ -25,6 +25,5 @@ def metrics(result, network_name, metrics_log_info):
         message = "Network Resilience Danger!"
 
     row = [time, network_name, num_of_nodes, nodes_offline, networkResilience, message]
-
     gspread_append_sheet(authD_client, file_name, worksheet_name, row)
     print("\033[1;92;40mPosted to " + file_name + " in sheet " + worksheet_name + ".\033[m")
