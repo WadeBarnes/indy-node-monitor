@@ -43,3 +43,4 @@ fi
 
 cmd+="fetch_status \"$@\""
 eval ${cmd}
+#echo ${cmd}
