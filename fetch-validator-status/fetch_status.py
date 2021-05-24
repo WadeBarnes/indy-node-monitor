@@ -74,7 +74,7 @@ async def fetch_status(genesis_path: str, nodes: str = None, ident: DidKey = Non
 def get_script_dir():
     return os.path.dirname(os.path.realpath(__file__))
 
-              
+
 def download_genesis_file(url: str, target_local_path: str):
     log("Fetching genesis file ...")
     target_local_path = f"{get_script_dir()}/genesis.txn"
@@ -89,6 +89,31 @@ def list_networks():
     networks = load_network_list()
     return networks.keys()
 
+def init_network_args(network):
+    network_name = None
+    args.net = network
+    if args.net:
+        log("Loading known network list ...")
+        networks = load_network_list()
+        if args.net in networks:
+            log("Connecting to '{0}' ...".format(networks[args.net]["name"]))
+            args.genesis_url = networks[args.net]["genesisUrl"]
+            network_name = networks[args.net]["name"]
+            log(f"Setting network name  = {network_name} ...")
+
+
+    if args.genesis_url:
+        download_genesis_file(args.genesis_url, args.genesis_path)
+        if not network_name:
+            network_name = args.genesis_url
+            log(f"Setting network name  = {network_name} ...")
+    if not os.path.exists(args.genesis_path):
+        print("Set the GENESIS_URL or GENESIS_PATH environment variable or argument.\n", file=sys.stderr)
+        parser.print_help()
+        exit()
+
+    return network_name
+
 # ==========================================================
 # REST API Example Code
 # ----------------------------------------------------------
@@ -101,8 +126,37 @@ def format_json(data):
 async def handler(request: web.Request) -> web.Response:
     return web.Response(text="Hello World!\n\nYours truly,\nIndy-Node-Monitor")
 
-@routes.get('/fetch-status')
+@routes.get('/networks')
 async def handler(request: web.Request) -> web.Response:
+    result = load_network_list()
+    return web.json_response(result, dumps = format_json)
+
+@routes.get('/networks/{network}')
+async def handler(request: web.Request) -> web.Response:
+    network_name = init_network_args(request.match_info.get("network", ""))
+
+    if "seed" in request.headers:
+        ident = DidKey(request.headers["seed"])
+        log("DID:", ident.did, " Verkey:", ident.verkey)
+    else:
+        ident = None
+
+    args.nodes = None
+    log(f"Network name  = {network_name} ...")
+    result = await fetch_status(args.genesis_path, args.nodes, ident, network_name)
+    return web.json_response(result, dumps = format_json)
+
+@routes.get('/networks/{network}/{node}')
+async def handler(request: web.Request) -> web.Response:
+    network_name = init_network_args(request.match_info.get("network", ""))
+
+    if "seed" in request.headers:
+        ident = DidKey(request.headers["seed"])
+        log("DID:", ident.did, " Verkey:", ident.verkey)
+    else:
+        ident = None
+
+    args.nodes = request.match_info.get("node", "")
     result = await fetch_status(args.genesis_path, args.nodes, ident, network_name)
     return web.json_response(result, dumps = format_json)
 
@@ -136,23 +190,7 @@ if __name__ == "__main__":
         print(json.dumps(load_network_list(), indent=2))
         exit()
 
-    network_name = None 
-    if args.net:
-        log("Loading known network list ...")
-        networks = load_network_list()
-        if args.net in networks:
-            log("Connecting to '{0}' ...".format(networks[args.net]["name"]))
-            args.genesis_url = networks[args.net]["genesisUrl"]
-            network_name = networks[args.net]["name"]
-
-    if args.genesis_url:
-        download_genesis_file(args.genesis_url, args.genesis_path)
-        if not network_name: 
-            network_name = args.genesis_url
-    if not os.path.exists(args.genesis_path):
-        print("Set the GENESIS_URL or GENESIS_PATH environment variable or argument.\n", file=sys.stderr)
-        parser.print_help()
-        exit()
+    network_name = init_network_args(args.net)
 
     did_seed = None if not args.seed else args.seed
 
