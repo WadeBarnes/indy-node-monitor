@@ -1,0 +1,4 @@
+pynacl
+gspread
+oauth2client
+aiohttp

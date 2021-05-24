@@ -22,6 +22,8 @@ from plugin_collection import PluginCollection
 # import time
 from DidKey import DidKey
 
+from aiohttp import web
+
 verbose = False
 
 
@@ -86,6 +88,14 @@ def list_networks():
     networks = load_network_list()
     return networks.keys()
 
+async def handler(request: web.Request) -> web.Response:
+    return web.Response(text="Hello world")
+
+async def init_rest_api() -> web.Application:
+    app = web.Application()
+    app.add_routes([web.get("/", handler)])
+    return app
+
 if __name__ == "__main__":
     monitor_plugins = PluginCollection('plugins')
 
@@ -97,6 +107,7 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--seed", default=os.environ.get('SEED') , help="The privileged DID seed to use for the ledger requests.  Can be specified using the 'SEED' environment variable. If DID seed is not given the request will run anonymously.")
     parser.add_argument("--nodes", help="The comma delimited list of the nodes from which to collect the status.  The default is all of the nodes in the pool.")
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging.")
+    parser.add_argument("--web", action="store_true", help="Start API server.")
 
     monitor_plugins.get_parse_args(parser)
     args, unknown = parser.parse_known_args()
@@ -136,4 +147,9 @@ if __name__ == "__main__":
     else:
         ident = None
 
-    asyncio.get_event_loop().run_until_complete(fetch_status(args.genesis_path, args.nodes, ident, network_name))
+    if args.web:
+        log("Starting web server ...")
+        web.run_app(init_rest_api())
+    else:
+        log("Starting from the command line ...")
+        asyncio.get_event_loop().run_until_complete(fetch_status(args.genesis_path, args.nodes, ident, network_name))
