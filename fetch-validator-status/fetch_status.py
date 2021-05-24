@@ -88,13 +88,20 @@ def list_networks():
     networks = load_network_list()
     return networks.keys()
 
+# ==========================================================
+# REST API Example Code
+# ----------------------------------------------------------
+routes = web.RouteTableDef()
+
+@routes.get('/')
 async def handler(request: web.Request) -> web.Response:
-    return web.Response(text="Hello world")
+    return web.Response(text="Hello World!\n\nYours truly,\nIndy-Node-Monitor")
 
 async def init_rest_api() -> web.Application:
     app = web.Application()
-    app.add_routes([web.get("/", handler)])
+    app.add_routes(routes)
     return app
+# ==========================================================
 
 if __name__ == "__main__":
     monitor_plugins = PluginCollection('plugins')
