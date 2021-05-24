@@ -69,6 +69,7 @@ async def fetch_status(genesis_path: str, nodes: str = None, ident: DidKey = Non
 
     result = await monitor_plugins.apply_all_plugins_on_value(result, network_name, response, verifiers)
     print(json.dumps(result, indent=2))
+    return result
 
 def get_script_dir():
     return os.path.dirname(os.path.realpath(__file__))
@@ -93,9 +94,17 @@ def list_networks():
 # ----------------------------------------------------------
 routes = web.RouteTableDef()
 
-@routes.get('/')
+def format_json(data):
+    return json.dumps(data, indent=2)
+
+@routes.get('/hello')
 async def handler(request: web.Request) -> web.Response:
     return web.Response(text="Hello World!\n\nYours truly,\nIndy-Node-Monitor")
+
+@routes.get('/fetch-status')
+async def handler(request: web.Request) -> web.Response:
+    result = await fetch_status(args.genesis_path, args.nodes, ident, network_name)
+    return web.json_response(result, dumps = format_json)
 
 async def init_rest_api() -> web.Application:
     app = web.Application()
