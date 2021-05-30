@@ -135,7 +135,7 @@ async def handler(request: web.Request) -> web.Response:
 async def handler(request: web.Request) -> web.Response:
     network_name = init_network_args(request.match_info.get("network", ""))
 
-    if "seed" in request.headers:
+    if "seed" in request.headers and request.headers["seed"]:
         ident = DidKey(request.headers["seed"])
         log("DID:", ident.did, " Verkey:", ident.verkey)
     else:
