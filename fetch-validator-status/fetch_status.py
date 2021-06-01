@@ -135,11 +135,13 @@ async def handler(request: web.Request) -> web.Response:
 async def handler(request: web.Request) -> web.Response:
     network_name = init_network_args(request.match_info.get("network", ""))
 
+    ident = None
     if "seed" in request.headers and request.headers["seed"]:
-        ident = DidKey(request.headers["seed"])
-        log("DID:", ident.did, " Verkey:", ident.verkey)
-    else:
-        ident = None
+        try:
+            ident = DidKey(request.headers["seed"])
+            log("DID:", ident.did, " Verkey:", ident.verkey)
+        except:
+            log("Invalid seed.  Continuing anonymously ...")
 
     args.nodes = None
     log(f"Network name  = {network_name} ...")
