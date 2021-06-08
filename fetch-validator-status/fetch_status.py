@@ -34,8 +34,7 @@ if __name__ == "__main__":
     monitor_plugins.get_parse_args(parser)
     args, unknown = parser.parse_known_args()
 
-    verbose = args.verbose
-    enable_verbose(verbose)
+    enable_verbose(args.verbose)
 
     monitor_plugins.load_all_parse_args(args)
 
