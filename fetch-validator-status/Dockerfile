@@ -1,6 +1,17 @@
 FROM bcgovimages/von-image:next-1
 
-RUN pip install pynacl gspread oauth2client
+ARG user=indy
+USER root
+RUN apt-get update -y && \
+    apt-get install -y --no-install-recommends \
+    build-essential \
+    python3-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+USER $user
+
+ADD requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 ADD networks.json .
 ADD *.py ./
