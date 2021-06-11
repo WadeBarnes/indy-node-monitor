@@ -82,7 +82,6 @@ def list_networks():
     return networks.keys()
 
 def init_network_args(network: str = None, genesis_url: str = None, genesis_path: str = None):
-    # genesis_path = args.genesis_path
 
     if network:
         log("Loading known network list ...")
@@ -100,7 +99,6 @@ def init_network_args(network: str = None, genesis_url: str = None, genesis_path
 
     if not os.path.exists(genesis_path):
         print("Set the GENESIS_URL or GENESIS_PATH environment variable or argument.\n", file=sys.stderr)
-        # parser.print_help()
         exit()
 
     Network_Info = namedtuple('Network_Info', ['network_name', 'genesis_url', 'genesis_path']) 
