@@ -1,4 +1,3 @@
-#import os
 import os
 import json
 import argparse
@@ -12,10 +11,7 @@ from fetch_status_library import (
     enable_verbose,
     log,
     fetch_status,
-    get_script_dir,
-    download_genesis_file,
     load_network_list,
-    list_networks,
     init_network_args
 )
 from DidKey import DidKey
@@ -48,6 +44,7 @@ def set_plugin_parameters(status: bool = False, alerts: bool = False):
         parser.add_argument("-v", "--verbose", default=(os.environ.get('VERBOSE', 'False').lower() == 'true'), action="store_true")
         monitor_plugins.get_parse_args(parser)
         args, unknown = parser.parse_known_args()
+        enable_verbose(args.verbose)
 
     # Create namspace with default args
     api_args = argparse.Namespace()

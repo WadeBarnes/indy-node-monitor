@@ -9,8 +9,6 @@ from fetch_status_library import (
     enable_verbose,
     log,
     fetch_status,
-    get_script_dir,
-    download_genesis_file,
     load_network_list,
     list_networks,
     init_network_args
