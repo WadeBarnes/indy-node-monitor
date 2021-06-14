@@ -3,8 +3,6 @@ import argparse
 
 from typing import Optional
 from fastapi import FastAPI, Header
-# from pydantic import BaseModel
-# from httpx import AsyncClient
 
 from util import (
     enable_verbose,
@@ -43,7 +41,7 @@ def set_plugin_parameters(status: bool = False, alerts: bool = False):
         default_args, unknown = parser.parse_known_args()
         enable_verbose(default_args.verbose)
 
-    # Create namspace with default args
+    # Create namespace with default args
     api_args = argparse.Namespace()
     for name, value in default_args._get_kwargs():
         setattr(api_args, name, value)
@@ -74,9 +72,12 @@ async def network(network, status: bool = False, alerts: bool = False, seed: Opt
 @app.get("/networks/{network}/{node}")
 async def node(network, node, status: bool = False, alerts: bool = False, seed: Optional[str] = Header(None)):
     monitor_plugins = set_plugin_parameters(status, alerts)
+    
     ident = create_did(seed)
     pool_collection = PoolCollection(default_args.verbose)
     network_info = pool_collection.get_network_info(network=network)
     status = FetchStatus(default_args.verbose, pool_collection, monitor_plugins, ident)
     result = await status.fetch(network_info, node)
+    # result = await status.fetch(network_info, ident, node)
+    
     return result
