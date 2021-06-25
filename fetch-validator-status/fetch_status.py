@@ -1,3 +1,4 @@
+from argparse import ArgumentError
 from indy_vdr.ledger import (
     build_get_validator_info_request,
     build_get_txn_request,
@@ -7,6 +8,9 @@ from plugin_collection import PluginCollection
 from DidKey import DidKey
 from pool import PoolCollection
 from singleton import Singleton
+
+class NodeNotFound(Exception):
+    pass
 
 class FetchStatus(object, metaclass=Singleton):
     def __init__(self, verbose, pool_collection: PoolCollection):
@@ -31,7 +35,6 @@ class FetchStatus(object, metaclass=Singleton):
             from_nodes = nodes.split(",")
             log("Submitting request ...")
 
-        response = await pool.submit_action(request, node_aliases = from_nodes)
         
         try:
             # Introduced in https://github.com/hyperledger/indy-vdr/commit/ce0e7c42491904e0d563f104eddc2386a52282f7
@@ -40,6 +43,13 @@ class FetchStatus(object, metaclass=Singleton):
         except AttributeError:
             log("Unable to get list of verifiers. Please make sure you have the latest version of indy-vdr.")
             pass
+
+        if verifiers and from_nodes:
+            for node in from_nodes:
+                if not node in verifiers:
+                    raise NodeNotFound(f'{node} is not a member of {network_name}')
+        
+        response = await pool.submit_action(request, node_aliases = from_nodes)
 
         log("Passing results to plugins for processing ...")
         result = await monitor_plugins.apply_all_plugins_on_value(result, network_name, response, verifiers)

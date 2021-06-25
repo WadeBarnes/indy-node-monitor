@@ -1,7 +1,7 @@
 import os
 import argparse
 from typing import Optional
-from fastapi import FastAPI, Header
+from fastapi import FastAPI, Header, HTTPException
 from util import (
     enable_verbose,
 #    log,
@@ -9,7 +9,7 @@ from util import (
 )
 from pool import PoolCollection
 from pool import Networks
-from fetch_status import FetchStatus
+from fetch_status import FetchStatus, NodeNotFound
 from plugin_collection import PluginCollection
 
 APP_NAME='Node Monitor'
@@ -75,5 +75,10 @@ async def network(network, status: bool = False, alerts: bool = False, seed: Opt
 async def node(network, node, status: bool = False, alerts: bool = False, seed: Optional[str] = Header(None)):
     monitor_plugins = set_plugin_parameters(status, alerts)
     ident = create_did(seed)
-    result = await node_info.fetch(network_id=network, monitor_plugins=monitor_plugins, nodes=node, ident=ident)
+    try:
+        result = await node_info.fetch(network_id=network, monitor_plugins=monitor_plugins, nodes=node, ident=ident)
+    except NodeNotFound as error:
+
+        raise HTTPException(status_code=400, detail=error)
+
     return result
