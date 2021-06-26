@@ -47,7 +47,7 @@ class FetchStatus(object, metaclass=Singleton):
         if verifiers and from_nodes:
             for node in from_nodes:
                 if not node in verifiers:
-                    raise NodeNotFound(f'{node} is not a member of {network_name}')
+                    raise NodeNotFound(f'{node} is not a member of {network_name}.')
         
         response = await pool.submit_action(request, node_aliases = from_nodes)
 

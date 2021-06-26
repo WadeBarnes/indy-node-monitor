@@ -78,7 +78,7 @@ async def node(network, node, status: bool = False, alerts: bool = False, seed: 
     try:
         result = await node_info.fetch(network_id=network, monitor_plugins=monitor_plugins, nodes=node, ident=ident)
     except NodeNotFound as error:
-
-        raise HTTPException(status_code=400, detail=error)
+        print(error)
+        raise HTTPException(status_code=400, detail=str(error))
 
     return result
