@@ -5,9 +5,9 @@ USER root
 RUN apt-get update -y && \
     apt-get install -y --no-install-recommends \
     build-essential \
+    libffi-dev \
     python3-dev && \
     rm -rf /var/lib/apt/lists/*
-
 USER $user
 
 ADD requirements.txt .
