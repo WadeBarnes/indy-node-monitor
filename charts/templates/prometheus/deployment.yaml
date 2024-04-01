@@ -22,12 +22,15 @@ spec:
           image: "{{ .repository }}:{{ .tag }}"
           ports:
             - containerPort: {{ .port }}
-          command: 
+          command:
             - "prometheus"
             - "--config.file=/etc/prometheus/prometheus.yml"
             - "--storage.tsdb.path=/prometheus"
             - "--web.console.libraries=/usr/share/prometheus/console_libraries"
             - "--web.console.templates=/usr/share/prometheus/consoles"
+          securityContext:
+            # Mounted volumes need to be accessible by the "nobody" user/group.
+            fsGroup: 65534
           volumeMounts:
             - name: "{{ .name }}-data"
               mountPath: "/prometheus"

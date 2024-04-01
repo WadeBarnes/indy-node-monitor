@@ -35,6 +35,9 @@ spec:
                 secretKeyRef:
                   name: credentials
                   key: INFLUX_DB_FLUX_TOKEN
+          securityContext:
+            # Mounted volumes need to be accessible by the "grafana" user/group (grafana/472).
+            fsGroup: 472
           volumeMounts:
             - name: "{{ .name }}-data"
               mountPath: "/var/lib/grafana"
