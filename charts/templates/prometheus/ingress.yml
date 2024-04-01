@@ -7,10 +7,10 @@ metadata:
   namespace: {{ $.Values.namespace }}
   name: {{ .name }}-ingress
   annotations:
-    kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: traefik
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
     {{- if and (eq $.Values.ingress.cert_manager.active true) ($.Values.ingress.endpoints.prometheus) }}
-    cert-manager.io/cluster-issuer: "{{ $.Values.ingress.cert_manager.issuer }}"
+    # cert-manager.io/cluster-issuer: "{{ $.Values.ingress.cert_manager.issuer }}"
     {{- end }}
 spec:
   rules:
@@ -28,7 +28,7 @@ spec:
   tls:
   - hosts:
     - {{ $.Values.ingress.endpoints.prometheus }}.{{ $.Values.ingress.domain }}
-    secretName: {{ $.Values.namespace }}-tls
+    # secretName: {{ $.Values.namespace }}-tls
   {{- end }}
 {{- end }}
 {{- end }}
